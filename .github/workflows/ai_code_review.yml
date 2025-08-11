@@ -1,11 +1,13 @@
 name: 🤖 AI Code Reviewer
 
 on:
-  pull_request:
-    types: [opened, synchronize]
+  # main 또는 master 브랜치에 push 이벤트가 발생했을 때 실행
+  push:
+    branches:
+      - main
+      - master
 
 permissions:
-  pull-requests: write
   contents: read # diff 및 파일 내용을 읽기 위한 권한
 
 jobs:
@@ -13,7 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
+        # push된 최신 코드를 가져옵니다.
         uses: actions/checkout@v4
+        with:
+          # 이전 커밋과 비교하기 위해 전체 히스토리를 가져옵니다.
+          fetch-depth: 0
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
@@ -25,10 +31,12 @@ jobs:
 
       - name: Run AI Code Review Script
         env:
-          # GitHub Secrets에 저장된 값들을 스크립트의 환경변수로 전달
-          GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
+          # GitHub Secrets 값들을 환경변수로 전달
+          GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # GitHub Actions가 제공하는 이벤트 페이로드 파일 경로
           GITHUB_EVENT_PATH: ${{ github.event_path }}
+          # 이벤트 이름을 스크립트에 전달
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: python review_bot.py
