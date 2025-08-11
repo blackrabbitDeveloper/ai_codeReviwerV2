@@ -1,0 +1,4 @@
+aiohttp
+google-generativeai
+quart-cors
+quart
